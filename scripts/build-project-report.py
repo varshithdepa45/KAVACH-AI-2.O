@@ -25,8 +25,10 @@ QA = ROOT / "tmp" / "report-qa"
 OUTPUT.parent.mkdir(parents=True, exist_ok=True)
 QA.mkdir(parents=True, exist_ok=True)
 
-FONT_DIR = Path("C:/Windows/Fonts")
-for name, filename in [("Report", "calibri.ttf"), ("ReportBold", "calibrib.ttf"), ("ReportItalic", "calibrii.ttf")]:
+import reportlab
+
+FONT_DIR = Path(reportlab.__file__).resolve().parent / "fonts"
+for name, filename in [("Report", "Vera.ttf"), ("ReportBold", "VeraBd.ttf"), ("ReportItalic", "VeraIt.ttf")]:
     pdfmetrics.registerFont(TTFont(name, str(FONT_DIR / filename)))
 pdfmetrics.registerFontFamily("Report", normal="Report", bold="ReportBold", italic="ReportItalic", boldItalic="ReportBold")
 
@@ -41,15 +43,15 @@ MARGIN = 54
 CONTENT = WIDTH - MARGIN * 2
 
 STYLES = {
-    "body": ParagraphStyle("Body", fontName="Report", fontSize=10.4, leading=14.5, textColor=INK, spaceAfter=8, allowWidows=0, allowOrphans=0, alignment=TA_LEFT),
+    "body": ParagraphStyle("Body", fontName="Report", fontSize=9.7, leading=13.3, textColor=INK, spaceAfter=8, allowWidows=0, allowOrphans=0, alignment=TA_LEFT),
     "title": ParagraphStyle("Title", fontName="ReportBold", fontSize=32, leading=36, textColor=colors.black, spaceAfter=13),
     "h1": ParagraphStyle("Heading1", fontName="ReportBold", fontSize=23, leading=28, textColor=colors.black, spaceAfter=16, keepWithNext=True),
     "h2": ParagraphStyle("Heading2", fontName="ReportBold", fontSize=13, leading=17, textColor=colors.black, spaceBefore=9, spaceAfter=7, keepWithNext=True),
-    "bullet": ParagraphStyle("Bullet", fontName="Report", fontSize=10.4, leading=14.5, textColor=INK, spaceAfter=6, leftIndent=17, bulletIndent=2, allowWidows=0, allowOrphans=0),
+    "bullet": ParagraphStyle("Bullet", fontName="Report", fontSize=9.7, leading=13.3, textColor=INK, spaceAfter=6, leftIndent=17, bulletIndent=2, allowWidows=0, allowOrphans=0),
     "source": ParagraphStyle("Source", fontName="ReportItalic", fontSize=8, leading=11, textColor=MUTED, spaceBefore=7, spaceAfter=3),
     "ref": ParagraphStyle("Reference", fontName="Report", fontSize=8.3, leading=10.8, textColor=INK, spaceAfter=4, leftIndent=11, firstLineIndent=-11),
-    "cell": ParagraphStyle("Cell", fontName="Report", fontSize=9.1, leading=12, textColor=INK),
-    "cellHead": ParagraphStyle("CellHead", fontName="ReportBold", fontSize=9.2, leading=12, textColor=colors.white),
+    "cell": ParagraphStyle("Cell", fontName="Report", fontSize=8.5, leading=10.8, textColor=INK),
+    "cellHead": ParagraphStyle("CellHead", fontName="ReportBold", fontSize=8.6, leading=10.8, textColor=colors.white),
     "code": ParagraphStyle("Code", fontName="Courier", fontSize=8.6, leading=12, textColor=INK, backColor=PAPER, borderPadding=9, spaceBefore=5, spaceAfter=12),
     "subtitle": ParagraphStyle("Subtitle", fontName="Report", fontSize=17, leading=22, textColor=colors.black, spaceAfter=12),
     "meta": ParagraphStyle("Metadata", fontName="Report", fontSize=10, leading=15, textColor=MUTED, spaceAfter=25),
@@ -155,7 +157,7 @@ def render_table(rows, chapter):
         ("GRID", (0, 0), (-1, -1), .5, LINE),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("LEFTPADDING", (0, 0), (-1, -1), 7), ("RIGHTPADDING", (0, 0), (-1, -1), 7),
-        ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
     ]))
     return [table, Spacer(1, 11)]
 
@@ -167,7 +169,7 @@ def parse(chapter, chapter_index):
         if not line: i += 1; continue
         if line.startswith("# "):
             items.append(Spacer(1, 20)); items.append(Paragraph(inline(line[2:]), STYLES["title"]))
-        elif chapter_index == 0 and line == "Website features architecture and operation":
+        elif chapter_index == 0 and line == "Complete product and technical documentation":
             items.append(Paragraph(line, STYLES["subtitle"]))
         elif chapter_index == 0 and line.startswith("Implementation reviewed"):
             items.append(Paragraph(line, STYLES["meta"]))
@@ -232,7 +234,8 @@ with pymupdf.open(OUTPUT) as pdf:
     for title, page in doc.heading_pages: print(page, title)
     text = "\n".join(page.get_text() for page in pdf)
     (QA / "extracted-text.txt").write_text(text, encoding="utf-8")
-    assert all(term in text for term in ["Batch uploads and analysis", "Document chat and local retrieval", "Evidence highlighting and human review", "111 tests", "2030-01-12"])
+    normalized_text = " ".join(text.split())
+    assert all(term in normalized_text for term in ["Batch uploads and analysis", "Document chat and local retrieval", "Evidence highlighting and human review", "Database design and record relationships", "2030-01-12"])
     assert len(pdf) >= 14
     for first in range(1, len(pdf) + 1, 7):
         sheet = Image.new("RGB", (2 * 430, 4 * 625), "#d6d8d0")
