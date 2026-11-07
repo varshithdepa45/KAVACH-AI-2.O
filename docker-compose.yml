@@ -1,0 +1,42 @@
+# Local appliance: inference and backend share a network namespace so the
+# airgapped provider policy can keep using a loopback inference URL.
+services:
+  inference:
+    image: ollama/ollama:latest
+    environment:
+      OLLAMA_HOST: 127.0.0.1:11434
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    network_mode: service:inference
+    depends_on:
+      - inference
+    environment:
+      KAVACH_MODE: airgapped
+      KAVACH_INFERENCE_PROVIDER: ollama
+      KAVACH_EMBEDDING_BACKEND: hash
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+    volumes:
+      - ./data:/app/data
+      - ./generated:/app/generated
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  ollama-models:

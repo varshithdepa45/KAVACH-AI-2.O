@@ -1,0 +1,40 @@
+# Node / Next
+node_modules/
+.next/
+out/
+npm-debug.log*
+.env
+.env.local
+backend/.env.sandbox
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# KAVACH runtime artifacts
+backend/kavach.db
+backend/kavach.db-*
+data/
+generated/*
+!generated/.gitkeep
+.test-tmp*/
+tmp/
+mentor-testing/results/*/runtime/
+mentor-testing/results/
+demo-data/uploads/*
+!demo-data/uploads/.gitkeep
+output/
+post-optimization-testing/evidence/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
